@@ -16,52 +16,46 @@ sudo apt install curl git make jq build-essential gcc unzip wget lz4 aria2 -y
 
 2. Download galileo repository
 ```bash
-wget -O galileo.tar.gz https://github.com/0glabs/0gchain-NG/releases/download/v1.1.1/galileo-v1.1.1.tar.gz
+wget https://github.com/0glabs/0gchain-NG/releases/download/v1.1.1/galileo-v1.1.1.tar.gz
 ```
 
 3. Extract Galileo.tar.gz
 ```bash
-tar -xzvf galileo.tar.gz -C $HOME
+tar -xzf galileo-v1.1.1.tar.gz
+rm galileo-v1.1.1.tar.gz
+cd galileo
 ```
 4. Copy Files and Set Permissions
 ```bash
-sudo chmod 777 $HOME/galileo/bin/geth
-sudo chmod 777 $HOME/galileo/bin/0gchaind
-cp $HOME/galileo/bin/geth $HOME/go/bin/geth
-cp $HOME/galileo/bin/0gchaind $HOME/go/bin/0gchaind
+sudo mv ./bin/geth /usr/local/bin/geth
+sudo mv ./bin/0gchaind /usr/local/bin/0gchaind
+sudo chmod +x /usr/local/bin/geth /usr/local/bin/0gchaind
 ```
+5. Initialize geth
 ```bash
-source $HOME/.bash_profile
-geth version
-0gchaind version
-```
-### Replace MONIKER and WALLET with your own name of choice
-```bash
-echo "export WALLET='WALLET'" >> $HOME/.bash_profile
-echo "export MONIKER='MONIKER'" >> $HOME/.bash_profile
-source $HOME/.bash_profile
-```
-5. Initialize Geth
-```bash
-mkdir -p $HOME/.0gchaind
-cp -r $HOME/galileo/0g-home $HOME/.0gchaind
-```
-```bash
-geth init --datadir $HOME/.0gchaind/0g-home/geth-home $HOME/galileo/genesis.json
+/usr/local/bin/geth init --datadir $HOME/galileo/0g-home/geth-home ./genesis.json
 ```
 6. Initialize 0gchaind
+Set Moniker
 ```bash
-0gchaind init "MONIKER" --home $HOME/.0gchaind/tmp
+read -p "Enter your MONIKER value: " MONIKER
+SERVER_IP=$(hostname -I | awk '{print $1}')
+```
+Init
+```bash
+/usr/local/bin/0gchaind init "$MONIKER" --home $HOME/galileo/tmp
+```
+7. Copy files to 0gchaind directory
+```bash
+cp $HOME/galileo/tmp/data/priv_validator_state.json $HOME/galileo/0g-home/0gchaind-home/data/
+cp $HOME/galileo/tmp/config/node_key.json $HOME/galileo/0g-home/0gchaind-home/config/
+cp $HOME/galileo/tmp/config/priv_validator_key.json $HOME/galileo/0g-home/0gchaind-home/config/
 ```
 ```bash
-#copy node files to 0gchaind-home
-cp $HOME/.0gchaind/tmp/data/priv_validator_state.json $HOME/.0gchaind/0g-home/0gchaind-home/data/
-cp $HOME/.0gchaind/tmp/config/node_key.json $HOME/.0gchaind/0g-home/0gchaind-home/config/
-cp $HOME/.0gchaind/tmp/config/priv_validator_key.json $HOME/.0gchaind/0g-home/0gchaind-home/config/
-#remove temporary file
-rm -rf $HOME/.0gchaind/tmp
+mkdir -p $HOME/.0gchaind
+mv $HOME/galileo/0g-home $HOME/.0gchaind/
 ```
-7. Create 0gchaind service file
+8. Create 0gchaind service file
 ```bash
 sudo tee /etc/systemd/system/0gchaind.service > /dev/null <<EOF
 [Unit]
@@ -84,7 +78,7 @@ ExecStart=/usr/local/bin/0gchaind start \
     --pruning=nothing \
     --home=$HOME/.0gchaind/0g-home/0gchaind-home \
     --p2p.seeds=85a9b9a1b7fa0969704db2bc37f7c100855a75d9@8.218.88.60:26656 \
-    --p2p.external_address=$SERVER_IP:26656
+    --p2p.external_address=$(curl -4 -s ifconfig.me):26656
 Restart=always
 RestartSec=5
 LimitNOFILE=4096
@@ -93,7 +87,7 @@ LimitNOFILE=4096
 WantedBy=multi-user.target
 EOF
 ```
-7. Create Geth service file
+9. Create Geth service file
 ```bash
 sudo tee /etc/systemd/system/geth.service > /dev/null <<EOF
 [Unit]
@@ -104,7 +98,7 @@ After=network.target
 User=$USER
 WorkingDirectory=$HOME/galileo
 ExecStart=/usr/local/bin/geth --config $HOME/galileo/geth-config.toml \
-    --nat extip:$SERVER_IP \
+    --nat extip:$(curl -4 -s ifconfig.me) \
     --bootnodes enode://de7b86d8ac452b1413983049c20eafa2ea0851a3219c2cc12649b971c1677bd83fe24c5331e078471e52a94d95e8cde84cb9d866574fec957124e57ac6056699@8.218.88.60:30303 \
     --datadir $HOME/.0gchaind/0g-home/geth-home \
     --networkid 16601
@@ -116,25 +110,17 @@ LimitNOFILE=4096
 WantedBy=multi-user.target
 EOF
 ```
-8. Reload daemon
+10. Reload daemon
 ```bash
-sudo systemctl daemon-reload && \
+sudo systemctl daemon-reload
+sudo systemctl enable geth
 sudo systemctl enable 0gchaind
-sudo systemctl enable geth.service
-```
-9. Start 0gchaind and Geth
-```bash
-sudo systemctl start 0gchaind
-sudo systemctl status 0gchaind
-```
-```bash
 sudo systemctl start geth
-sudo systemctl status geth
+sudo systemctl start 0gchaind
 ```
 ### Check logs
 ```bash
-sudo journalctl -fu 0gchaind -o cat
-sudo journalctl -fu geth -o cat
+journalctl -u 0gchaind -u geth -f
 ```
 ### Check latest block
 ```bash
