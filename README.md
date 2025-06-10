@@ -157,6 +157,19 @@ while true; do
 done
 ```
 
+## Delete RPC Node
+```bash
+cd $HOME
+sudo systemctl stop 0gchaind geth
+sudo systemctl disable 0gchaind geth
+sudo rm /etc/systemd/system/0gchaind.service
+sudo rm /etc/systemd/system/geth.service
+sudo systemctl daemon-reload
+sudo rm -f $(which 0gchaind)
+sudo rm -rf $HOME/.0gchaind
+sudo rm -rf $HOME/galileo
+```
+
 
 
 
