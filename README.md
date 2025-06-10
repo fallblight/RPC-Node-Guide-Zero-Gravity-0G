@@ -63,32 +63,31 @@ rm -rf $HOME/.0gchaind/tmp
 ```
 7. Create 0gchaind service file
 ```bash
-cat > /etc/systemd/system/0gchaind.service << EOF
+sudo tee /etc/systemd/system/0gchaind.service > /dev/null <<EOF
 [Unit]
-Description=0G Chain Daemon
-After=network-online.target
+Description=0GChainD Service
+After=network.target
 
 [Service]
-User=root
-ExecStart=$HOME/go/bin/0gchaind start \\
-    --rpc.laddr tcp://0.0.0.0:26657 \\
-    --chain-spec devnet \\
-    --kzg.trusted-setup-path=$HOME/galileo/kzg-trusted-setup.json \\
-    --engine.jwt-secret-path=$HOME/galileo/jwt-secret.hex \\
-    --kzg.implementation=crate-crypto/go-kzg-4844 \\
-    --block-store-service.enabled \\
-    --node-api.enabled \\
-    --node-api.logging \\
-    --node-api.address 0.0.0.0:3500 \\
-    --pruning=nothing \\
-    --home $HOME/.0gchaind/0g-home/0gchaind-home \\
-    --p2p.seeds 85a9b9a1b7fa0969704db2bc37f7c100855a75d9@8.218.88.60:26656 \\
-    --p2p.external_address $(curl -s http://ipv4.icanhazip.com):8656
-Environment=CHAIN_SPEC=devnet
+User=$USER
 WorkingDirectory=$HOME/galileo
+ExecStart=/usr/local/bin/0gchaind start \
+    --rpc.laddr tcp://0.0.0.0:26657 \
+    --chain-spec devnet \
+    --kzg.trusted-setup-path=$HOME/galileo/kzg-trusted-setup.json \
+    --engine.jwt-secret-path=$HOME/galileo/jwt-secret.hex \
+    --kzg.implementation=crate-crypto/go-kzg-4844 \
+    --block-store-service.enabled \
+    --node-api.enabled \
+    --node-api.logging \
+    --node-api.address 0.0.0.0:3500 \
+    --pruning=nothing \
+    --home=$HOME/.0gchaind/0g-home/0gchaind-home \
+    --p2p.seeds=85a9b9a1b7fa0969704db2bc37f7c100855a75d9@8.218.88.60:26656 \
+    --p2p.external_address=$SERVER_IP:26656
 Restart=always
-RestartSec=3
-LimitNOFILE=65535
+RestartSec=5
+LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target
@@ -96,26 +95,22 @@ EOF
 ```
 7. Create Geth service file
 ```bash
-cat > /etc/systemd/system/geth.service << EOF
+sudo tee /etc/systemd/system/geth.service > /dev/null <<EOF
 [Unit]
-Description=Go Ethereum Client
-After=network-online.target
-Wants=network-online.target
+Description=Geth Service for 0GChainD
+After=network.target
 
 [Service]
-User=root
-ExecStart=$HOME/go/bin/geth \\
-    --config $HOME/galileo/geth-config.toml \\
-    --datadir $HOME/.0gchaind/0g-home/geth-home \\
-    --networkid 16601 \\
-    --port 30303 \\
-    --http.port 8645 \\
-    --ws.port 8646 \\
-    --authrpc.port 8551
-Restart=always
+User=$USER
 WorkingDirectory=$HOME/galileo
-RestartSec=3
-LimitNOFILE=65535
+ExecStart=/usr/local/bin/geth --config $HOME/galileo/geth-config.toml \
+    --nat extip:$SERVER_IP \
+    --bootnodes enode://de7b86d8ac452b1413983049c20eafa2ea0851a3219c2cc12649b971c1677bd83fe24c5331e078471e52a94d95e8cde84cb9d866574fec957124e57ac6056699@8.218.88.60:30303 \
+    --datadir $HOME/.0gchaind/0g-home/geth-home \
+    --networkid 16601
+Restart=always
+RestartSec=5
+LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target
