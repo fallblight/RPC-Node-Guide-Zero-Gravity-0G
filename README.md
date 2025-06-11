@@ -63,22 +63,9 @@ Description=0GChainD Service
 After=network.target
 
 [Service]
-User=$USER
-WorkingDirectory=$HOME/galileo
-ExecStart=/usr/local/bin/0gchaind start \
-    --rpc.laddr tcp://0.0.0.0:26657 \
-    --chain-spec devnet \
-    --kzg.trusted-setup-path=$HOME/galileo/kzg-trusted-setup.json \
-    --engine.jwt-secret-path=$HOME/galileo/jwt-secret.hex \
-    --kzg.implementation=crate-crypto/go-kzg-4844 \
-    --block-store-service.enabled \
-    --node-api.enabled \
-    --node-api.logging \
-    --node-api.address 0.0.0.0:3500 \
-    --pruning=nothing \
-    --home=$HOME/.0gchaind/0g-home/0gchaind-home \
-    --p2p.seeds=85a9b9a1b7fa0969704db2bc37f7c100855a75d9@8.218.88.60:26656 \
-    --p2p.external_address=$(curl -4 -s ifconfig.me):26656
+User=root
+WorkingDirectory=/root/galileo
+ExecStart=/usr/local/bin/0gchaind start     --rpc.laddr tcp://0.0.0.0:26657     --chaincfg.chain-spec devnet     --chaincfg.kzg.trusted-setup-path=/root/galileo/kzg-trusted-setup.json     --chaincfg.engine.jwt-secret-path=/root/galileo/jwt-secret.hex     --chaincfg.kzg.implementation=crate-crypto/go-kzg-4844     --chaincfg.block-store-service.enabled     --chaincfg.node-api.enabled     --chaincfg.node-api.logging     --chaincfg.node-api.address 0.0.0.0:3500     --pruning=nothing     --home=/root/.0gchaind/0g-home/0gchaind-home     --p2p.seeds=85a9b9a1b7fa0969704db2bc37f7c100855a75d9@8.218.88.60:26656     --p2p.external_address=54.38.177.118:26656
 Restart=always
 RestartSec=5
 LimitNOFILE=4096
