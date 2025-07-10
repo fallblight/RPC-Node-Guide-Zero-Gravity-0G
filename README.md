@@ -119,7 +119,11 @@ journalctl -u 0gchaind -u geth -f
 while true; do
   PORT=$(grep -A 3 '^\[rpc\]' $HOME/.0gchaind/0g-home/0gchaind-home/config/config.toml | grep -oP 'laddr = "tcp://[0-9.:]+:\K\d+')
   local=$(curl -s localhost:$PORT/status | jq -r '.result.sync_info.latest_block_height//0')
-  network=$(curl -s http://152.53.102.226:27657/status | jq -r '.result.sync_info.latest_block_height//0')
+  network=$(curl -s -X POST https://evmrpc-testnet.0g.ai \
+      -H "Content-Type: application/json" \
+      -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+      | jq -r '.result' | xargs printf "%d")
+
   left=$((network - local))
   echo -e "Local: \033[1;34m$local\033[0m | Network: \033[1;36m$network\033[0m | Left: \033[1;31m$left\033[0m"
   sleep 5
