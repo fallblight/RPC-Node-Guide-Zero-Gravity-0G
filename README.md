@@ -21,9 +21,9 @@ wget https://github.com/0glabs/0gchain-NG/releases/download/v1.2.0/galileo-v1.2.
 
 3. Extract Galileo.tar.gz
 ```bash
-tar -xzf galileo-v1.2.0.tar.gz
-rm galileo-v1.2.0.tar.gz
-mv galileo-v1.2.0 galileo
+tar -xzf galileo-v2.0.2.tar.gz
+rm galileo-v2.0.2.tar.gz
+mv galileo-v2.0.2 galileo
 cd galileo
 ```
 4. Copy Files and Set Permissions
