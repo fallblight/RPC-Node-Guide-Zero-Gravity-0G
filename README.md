@@ -16,7 +16,7 @@ sudo apt install curl git make jq build-essential gcc unzip wget lz4 aria2 -y
 
 2. Download galileo repository
 ```bash
-wget https://github.com/0glabs/0gchain-NG/releases/download/v1.2.0/galileo-v1.2.0.tar.gz
+wget https://github.com/0glabs/0gchain-NG/releases/download/v2.0.2/galileo-v2.0.2.tar.gz
 ```
 
 3. Extract Galileo.tar.gz
